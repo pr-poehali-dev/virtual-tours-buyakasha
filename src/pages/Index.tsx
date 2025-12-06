@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedObjectType, setSelectedObjectType] = useState<string>('');
+  const [volume, setVolume] = useState<number>(100);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -18,35 +19,37 @@ const Index = () => {
   };
 
   const objectTypes = [
-    { id: 'apartment', name: 'Квартира', basePrice: 15000, icon: 'Home' },
-    { id: 'hotel', name: 'Отель', basePrice: 45000, icon: 'Building' },
-    { id: 'exhibition', name: 'Выставка', basePrice: 35000, icon: 'Store' },
-    { id: 'factory', name: 'Техпредприятие', basePrice: 65000, icon: 'Factory' },
+    { id: 'apartment', name: 'Квартира', icon: 'Home' },
+    { id: 'hotel', name: 'Отель', icon: 'Building' },
+    { id: 'exhibition', name: 'Выставка', icon: 'Store' },
+    { id: 'factory', name: 'Техпредприятие', icon: 'Factory' },
   ];
+
+  const pricePerCubicMeter = 2000;
 
   const portfolioItems = [
     {
       title: 'Премиум Квартира',
       description: 'Виртуальный тур по пентхаусу 180м²',
-      image: '🏢',
+      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
       type: 'Недвижимость'
     },
     {
       title: 'Бутик-Отель',
       description: 'Полная презентация всех номеров',
-      image: '🏨',
+      image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80',
       type: 'Гостеприимство'
     },
     {
       title: 'Арт-Выставка',
       description: 'Интерактивная галерея современного искусства',
-      image: '🎨',
+      image: 'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&q=80',
       type: 'Культура'
     },
     {
       title: 'Производство',
       description: 'Виртуальная экскурсия по заводу',
-      image: '🏭',
+      image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80',
       type: 'Промышленность'
     },
   ];
@@ -79,8 +82,9 @@ const Index = () => {
     { label: 'Контакты', href: 'contacts' },
   ];
 
-  const selectedObject = objectTypes.find(obj => obj.id === selectedObjectType);
-  const calculatedPrice = selectedObject ? selectedObject.basePrice.toLocaleString('ru-RU') : '—';
+  const calculatedPrice = selectedObjectType && volume > 0 
+    ? (volume * pricePerCubicMeter).toLocaleString('ru-RU') 
+    : '—';
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -153,30 +157,53 @@ const Index = () => {
             <div className="space-y-6">
               <div>
                 <label className="text-lg font-semibold mb-4 block">Выберите тип объекта:</label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {objectTypes.map((type) => (
                     <button
                       key={type.id}
                       onClick={() => setSelectedObjectType(type.id)}
-                      className={`p-6 rounded-lg border-2 transition-all hover:scale-105 ${
+                      className={`p-4 rounded-lg border-2 transition-all hover:scale-105 ${
                         selectedObjectType === type.id
                           ? 'border-primary bg-primary/10'
                           : 'border-border hover:border-primary/50'
                       }`}
                     >
-                      <div className="flex items-center gap-4">
-                        <Icon name={type.icon as any} size={32} className="text-primary" />
-                        <div className="text-left">
-                          <div className="font-semibold text-lg">{type.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            от {type.basePrice.toLocaleString('ru-RU')} ₽
-                          </div>
-                        </div>
-                      </div>
+                      <Icon name={type.icon as any} size={32} className="text-primary mx-auto mb-2" />
+                      <div className="font-semibold text-center">{type.name}</div>
                     </button>
                   ))}
                 </div>
               </div>
+
+              {selectedObjectType && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-lg font-semibold mb-2 block">Объем помещения (м³):</label>
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="range"
+                        min="20"
+                        max="1000"
+                        step="10"
+                        value={volume}
+                        onChange={(e) => setVolume(Number(e.target.value))}
+                        className="flex-1 h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                      />
+                      <input
+                        type="number"
+                        value={volume}
+                        onChange={(e) => setVolume(Number(e.target.value))}
+                        className="w-24 px-3 py-2 rounded-lg bg-background border border-border focus:border-primary focus:outline-none"
+                        min="20"
+                        max="1000"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Цена за м³: {pricePerCubicMeter.toLocaleString('ru-RU')} ₽
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="pt-6 border-t border-border">
                 <div className="flex justify-between items-center">
@@ -208,8 +235,12 @@ const Index = () => {
                 key={index} 
                 className="overflow-hidden hover:scale-105 transition-transform cursor-pointer group"
               >
-                <div className="aspect-square bg-secondary flex items-center justify-center text-6xl">
-                  {item.image}
+                <div className="aspect-square overflow-hidden">
+                  <img 
+                    src={item.image} 
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
                 </div>
                 <div className="p-6">
                   <div className="text-xs text-primary font-semibold mb-2">{item.type}</div>
@@ -286,9 +317,9 @@ const Index = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <a href="tel:+79991234567" className="flex items-center gap-2 text-lg hover:text-primary transition-colors">
+            <a href="tel:+79360017793" className="flex items-center gap-2 text-lg hover:text-primary transition-colors">
               <Icon name="Phone" size={24} />
-              +7 (999) 123-45-67
+              +7 (936) 001-77-93
             </a>
             <a href="mailto:info@buyakasha.ru" className="flex items-center gap-2 text-lg hover:text-primary transition-colors">
               <Icon name="Mail" size={24} />
